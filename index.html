@@ -118,8 +118,8 @@
                     end: {x: itemx2.x, y: itemx2.y + itemx2.height/2},
                 }
                 let xOffset = linker.end.x - linker.start.x;
-                linker.break = {x: linker.end.x - xOffset/3, y: linker.end.y};
-                linker.QControl = {x: linker.start.x + xOffset/3, y: linker.start.y};
+                linker.break = {x: linker.end.x - xOffset/2, y: linker.end.y};
+                linker.QControl = {x: linker.start.x + xOffset/2, y: linker.start.y};
 
                 return linker
             }

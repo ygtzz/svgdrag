@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>svg拖动</title>
+    <style>
+        body{
+            min-height: 1000px;
+        }
+        .rect{
+            stroke-width:2;stroke:lightcoral;fill:lightblue;
+        }
+        .linker{stroke-width: 2;stroke: blue; fill: none;}
+    </style>
+</head>
+<body>
+    <!-- <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" style="height:1000px">
+        <rect width="50" height="50" class="rect"/>
+        <rect x="100" y="100" width="50" height="50" class="rect2"/>
+        <path class="linker" d="M 50 25 Q 65 25 75 75 T 100 125"  />
+    </svg> -->
+    <script src="./node_modules/@svgdotjs/svg.js/dist/svg.js"></script>
+    <script src="./node_modules/@svgdotjs/svg.draggable.js/dist/svg.draggable.js"></script>
+    <script>
+        let draw = SVG().addTo('body').size('100%', '1000px')
+        var item1 = {
+            x: 2,
+            y: 2,
+            width: 50,
+            height: 50
+        }
+        var item2 = {
+            x: 100,
+            y: 100,
+            width: 50,
+            height: 50
+        }
+        // M 50 25 Q 65 25 75 75 T 100 125
+        // let linker = {
+        //     start: {x: item1.x + item1.width, y: item1.y + item1.height/2},
+        //     end: {x: item2.x, y: item2.y + item2.height/2},
+        // }
+        // linker.break = {x: linker.start.x + (item2.x - linker.start.x)/2, y: linker.start.y + (item2.y + item2.height/2 - linker.start.y)/2 };
+        // linker.QControl = {x: linker.start.x + (item2.x - linker.start.x)/4, y: linker.start.y};
+
+        //let path = draw.path(`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`).attr({class:'linker'});
+
+
+        function init(){
+        
+            // console.log('linker: ', linker);
+
+            let items = [item1,item2];
+            let shapes = items.map(t => {
+                //let item = draw.rect(t.width, t.height).attr({ class: 'rect', x: t.x, y: t.y }).draggable();
+                // bind
+                //item.on('dragstart.linker', dragstart);
+                return new Shape(t)
+            })
+
+            let linker1 = new Linker(shapes[0], shapes[1]);
+        }
+
+        // function dragstart(e){
+        //     this.on('dragmove.linker', dragmove);
+        //     this.on('dragend.linker', dragend);
+        // }
+
+        // function dragmove(e){
+        //     // console.log(e, this);
+        //     let linker = buildLinker(item1, e.detail.box);
+        //     console.log('linker: ', linker)
+        //     path.attr({d:`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`});
+        // }
+
+        // function dragend(e){
+        //     this.off('dragmove.linker');
+        //     this.off('dragend.linker');
+        // }
+
+        // function buildLinker(itemA,itemB){
+        //     let itemx1 = itemA.x < itemB.x ? itemA : itemB;
+        //     let itemx2 = itemA.x < itemB.x ? itemB : itemA;
+        //     let itemy1 = itemA.y < itemB.y ? itemA : itemB;
+        //     let itemy2 = itemA.y < itemB.y ? itemB : itemA;
+        //     let linker = {
+        //         start: {x: itemx1.x + itemx1.width, y: itemy1.y + itemy1.height/2},
+        //         end: {x: itemx2.x, y: itemy2.y + itemy2.height/2},
+        //     }
+        //     linker.break = {x: linker.start.x + (itemx2.x - linker.start.x)/2, y: linker.start.y + (itemy2.y + itemy2.height/2 - linker.start.y)/2 };
+        //     linker.QControl = {x: linker.start.x + (itemx2.x - linker.start.x)/4, y: linker.start.y};
+
+        //     return linker
+        // }
+
+        class Shape{
+            constructor(box){
+                this.linkers = new Set();
+                this.item = draw.rect(box.width, box.height).attr({ class: 'rect', x: box.x, y: box.y }).draggable()
+                console.log('item ', this.item)
+                this.bindEvent();
+            }
+            bindEvent(){
+                let self = this;
+                self.item.on('dragstart.linker', dragstart);
+
+                function dragstart(e){
+                    this.on('dragmove.linker', dragmove);
+                    this.on('dragend.linker', dragend);
+                }
+
+                function dragmove(e){
+                    // console.log(e, this);
+                    self.linkers.forEach(link => link.refresh())
+                }
+
+                function dragend(e){
+                    this.off('dragmove.linker');
+                    this.off('dragend.linker');
+                }
+            }
+        }
+
+        class Linker{
+            constructor(shape1,shape2){
+                this.shape1 = shape1;
+                shape1.linkers.add(this);
+                this.shape2 = shape2;
+                shape2.linkers.add(this);
+                
+                let linker = this.buildLinker();
+                console.log('linker: ', linker)
+                this.path = draw.path(`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`).attr({class:'linker'});
+            }
+            refresh(){
+                let linker = this.buildLinker();
+                console.log('linker: ', linker)
+                this.path.attr({d:`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`});
+            }
+            buildLinker(){
+                let itemA = this.getBox(this.shape1);
+                let itemB = this.getBox(this.shape2);
+                console.log('itemA: ', itemA)
+                let itemx1 = itemA.x < itemB.x ? itemA : itemB;
+                let itemx2 = itemA.x < itemB.x ? itemB : itemA;
+                let itemy1 = itemA.y < itemB.y ? itemA : itemB;
+                let itemy2 = itemA.y < itemB.y ? itemB : itemA;
+                let linker = {
+                    start: {x: itemx1.x + itemx1.width, y: itemx1.y + itemx1.height/2},
+                    end: {x: itemx2.x, y: itemx2.y + itemx2.height/2},
+                }
+                linker.break = {x: linker.start.x + (itemx2.x - linker.start.x)/2, y: itemy1.y + itemy1.height/2 + Math.abs((itemy1.y + itemy1.height/2) - (itemy2.y+itemy2.height/2))/2};
+                linker.QControl = {x: linker.start.x + (itemx2.x - linker.start.x)/4, y: linker.start.y};
+
+                return linker
+            }
+            getBox(shape){
+                let {width,height,x,y} = shape.item.node.attributes;
+                return {
+                    width: parseInt(width.value),
+                    height: parseInt(height.value),
+                    x: parseInt(x.value),
+                    y: parseInt(y.value)
+                }
+            }
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

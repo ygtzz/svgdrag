@@ -79,13 +79,32 @@
                 
                 let linker = this.buildLinker();
                 console.log('linker: ', linker)
-                this.path = draw.path(`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`).attr({class:'linker'});
+                this.path = draw.path(`M ${linker.start.x} ${linker.start.y} C ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} ${linker.end.x} ${linker.end.y}`).attr({class:'linker'});
+                // this.path = draw.path(`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`).attr({class:'linker'});
             }
             refresh(){
                 let linker = this.buildLinker();
                 console.log('linker: ', linker)
-                this.path.attr({d:`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`});
+                this.path.attr({d:`M ${linker.start.x} ${linker.start.y} C ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} ${linker.end.x} ${linker.end.y}`});
+                // this.path.attr({d:`M ${linker.start.x} ${linker.start.y} Q ${linker.QControl.x} ${linker.QControl.y} ${linker.break.x} ${linker.break.y} T ${linker.end.x} ${linker.end.y}`});
             }
+            // buildLinker(){
+            //     let itemA = this.getBox(this.shape1);
+            //     let itemB = this.getBox(this.shape2);
+            //     console.log('itemA: ', itemA)
+            //     let itemx1 = itemA.x < itemB.x ? itemA : itemB;
+            //     let itemx2 = itemA.x < itemB.x ? itemB : itemA;
+            //     let itemy1 = itemA.y < itemB.y ? itemA : itemB;
+            //     let itemy2 = itemA.y < itemB.y ? itemB : itemA;
+            //     let linker = {
+            //         start: {x: itemx1.x + itemx1.width, y: itemx1.y + itemx1.height/2},
+            //         end: {x: itemx2.x, y: itemx2.y + itemx2.height/2},
+            //     }
+            //     linker.break = {x: linker.start.x + (itemx2.x - linker.start.x)/2, y: itemy1.y + itemy1.height/2 + Math.abs((itemy1.y + itemy1.height/2) - (itemy2.y+itemy2.height/2))/2};
+            //     linker.QControl = {x: linker.start.x + (itemx2.x - linker.start.x)/4, y: linker.start.y};
+
+            //     return linker
+            // }
             buildLinker(){
                 let itemA = this.getBox(this.shape1);
                 let itemB = this.getBox(this.shape2);
@@ -98,8 +117,9 @@
                     start: {x: itemx1.x + itemx1.width, y: itemx1.y + itemx1.height/2},
                     end: {x: itemx2.x, y: itemx2.y + itemx2.height/2},
                 }
-                linker.break = {x: linker.start.x + (itemx2.x - linker.start.x)/2, y: itemy1.y + itemy1.height/2 + Math.abs((itemy1.y + itemy1.height/2) - (itemy2.y+itemy2.height/2))/2};
-                linker.QControl = {x: linker.start.x + (itemx2.x - linker.start.x)/4, y: linker.start.y};
+                let xOffset = linker.end.x - linker.start.x;
+                linker.break = {x: linker.end.x - xOffset/3, y: linker.end.y};
+                linker.QControl = {x: linker.start.x + xOffset/3, y: linker.start.y};
 
                 return linker
             }
